@@ -1,12 +1,12 @@
-import { PipelineProvider, usePipeline } from './context/PipelineContext'
 import { PageShell } from './components/layout/PageShell'
 import { TargetIdentificationStage } from './components/pipeline/target_identification/TargetIdentificationStage'
 import { HitDiscovery } from './components/pipeline/hit_discovery/HitDiscovery'
+import { usePipelineStore } from './store/pipelineStore'
 
 function PipelineContent() {
-  const { state } = usePipeline()
+  const activeStage = usePipelineStore((s) => s.activeStage)
 
-  switch (state.activeStage) {
+  switch (activeStage) {
     case 'target_identification':
       return <TargetIdentificationStage />
     case 'hit_discovery':
@@ -14,7 +14,7 @@ function PipelineContent() {
     default:
       return (
         <div className="text-center py-16 text-gray-400 text-sm">
-          This stage is not yet implemented. Complete earlier stages to proceed.
+          This stage is not yet implemented.
         </div>
       )
   }
@@ -22,10 +22,8 @@ function PipelineContent() {
 
 export default function App() {
   return (
-    <PipelineProvider>
-      <PageShell>
-        <PipelineContent />
-      </PageShell>
-    </PipelineProvider>
+    <PageShell>
+      <PipelineContent />
+    </PageShell>
   )
 }

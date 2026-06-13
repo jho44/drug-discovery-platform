@@ -1,29 +1,21 @@
-import { useEffect } from 'react'
 import { useLiteratureMining } from '../../../hooks/useLiteratureMining'
 import { LitMiningSearchForm } from './LitMiningSearchForm'
 import { CandidateTargetList } from './CandidateTargetList'
 import { LoadingSpinner } from '../../shared/LoadingSpinner'
 import { ErrorBanner } from '../../shared/ErrorBanner'
-import type { LitMiningResult } from '../../../types/targetIdentification'
+import { usePipelineStore } from '../../../store/pipelineStore'
 
-interface Props {
-  onComplete?: (result: LitMiningResult) => void
-}
-
-export function LiteratureMining({ onComplete }: Props) {
-  const { result, loading, error, search } = useLiteratureMining()
-
-  useEffect(() => {
-    if (result && onComplete) onComplete(result)
-  }, [result])
+export function LiteratureMining() {
+  const { loading, error, search } = useLiteratureMining()
+  const litMiningResult = usePipelineStore((s) => s.litMiningResult)
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-gray-900">Literature Mining</h2>
         <p className="text-sm text-gray-500 mt-1">
-          Search PubMed abstracts and extract candidate drug targets using AI-powered named entity
-          recognition and relation extraction.
+          Search PubMed abstracts and extract candidate drug targets using AI-powered named
+          entity recognition and relation extraction.
         </p>
       </div>
 
@@ -35,14 +27,14 @@ export function LiteratureMining({ onComplete }: Props) {
 
       {error && <ErrorBanner message={error} />}
 
-      {result && !loading && (
+      {litMiningResult && !loading && (
         <div className="space-y-6">
           {/* Summary */}
           <div className="bg-lab-50 border border-lab-100 rounded-lg p-4">
             <p className="text-sm font-medium text-lab-900 mb-1">Summary</p>
-            <p className="text-sm text-lab-800">{result.summary}</p>
+            <p className="text-sm text-lab-800">{litMiningResult.summary}</p>
             <p className="text-xs text-lab-600 mt-2">
-              Analyzed {result.abstracts_fetched} abstracts for "{result.query}"
+              Analyzed {litMiningResult.abstracts_fetched} abstracts for "{litMiningResult.query}"
             </p>
           </div>
 
@@ -53,7 +45,7 @@ export function LiteratureMining({ onComplete }: Props) {
                 Genes / Proteins
               </p>
               <div className="flex flex-wrap gap-1.5">
-                {result.entities.genes_proteins.map(name => (
+                {litMiningResult.entities.genes_proteins.map((name) => (
                   <span key={name} className="bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full">
                     {name}
                   </span>
@@ -65,7 +57,7 @@ export function LiteratureMining({ onComplete }: Props) {
                 Diseases
               </p>
               <div className="flex flex-wrap gap-1.5">
-                {result.entities.diseases.map(name => (
+                {litMiningResult.entities.diseases.map((name) => (
                   <span key={name} className="bg-orange-50 text-orange-700 text-xs px-2 py-0.5 rounded-full">
                     {name}
                   </span>
@@ -79,19 +71,19 @@ export function LiteratureMining({ onComplete }: Props) {
             <h3 className="text-base font-semibold text-gray-900 mb-3">
               Candidate Targets
               <span className="ml-2 text-sm font-normal text-gray-400">
-                ({result.candidate_targets.length} identified)
+                ({litMiningResult.candidate_targets.length} identified)
               </span>
             </h3>
-            <CandidateTargetList targets={result.candidate_targets} />
+            <CandidateTargetList targets={litMiningResult.candidate_targets} />
           </div>
 
           {/* Abstracts used */}
-          <details className="group">
+          <details>
             <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
-              View {result.abstracts_meta.length} abstracts used
+              View {litMiningResult.abstracts_meta.length} abstracts used
             </summary>
             <ul className="mt-2 space-y-1 ml-4">
-              {result.abstracts_meta.map(a => (
+              {litMiningResult.abstracts_meta.map((a) => (
                 <li key={a.pmid} className="text-xs text-gray-500">
                   <a
                     href={`https://pubmed.ncbi.nlm.nih.gov/${a.pmid}/`}

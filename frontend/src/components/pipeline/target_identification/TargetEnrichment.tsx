@@ -2,17 +2,16 @@ import { useTargetEnrichment } from '../../../hooks/useTargetEnrichment'
 import { LoadingSpinner } from '../../shared/LoadingSpinner'
 import { ErrorBanner } from '../../shared/ErrorBanner'
 import { EnrichedTargetCard } from './EnrichedTargetCard'
-import type { LitMiningResult } from '../../../types/targetIdentification'
+import { usePipelineStore } from '../../../store/pipelineStore'
 
-interface Props {
-  litResult: LitMiningResult
-}
-
-export function TargetEnrichment({ litResult }: Props) {
+export function TargetEnrichment() {
+  const litResult = usePipelineStore((s) => s.litMiningResult)
   const { result, loading, error, enrich } = useTargetEnrichment()
 
+  if (!litResult) return null
+
   function handleEnrich() {
-    enrich(litResult.query, litResult.candidate_targets)
+    enrich(litResult!.query, litResult!.candidate_targets)
   }
 
   return (
@@ -69,7 +68,6 @@ export function TargetEnrichment({ litResult }: Props) {
 
       {result && !loading && (
         <div className="space-y-6">
-          {/* Summary */}
           <div className="bg-lab-50 border border-lab-100 rounded-lg p-4 space-y-2">
             <p className="text-sm font-medium text-lab-900">Enrichment Summary</p>
             <p className="text-sm text-lab-800">{result.enrichment_summary}</p>
@@ -80,7 +78,6 @@ export function TargetEnrichment({ litResult }: Props) {
             </div>
           </div>
 
-          {/* Coverage notes */}
           {(result.targets_not_found_in_ot.length > 0 || result.targets_not_found_in_hpa.length > 0) && (
             <div className="text-xs text-gray-400 bg-gray-50 rounded p-3 space-y-1">
               {result.targets_not_found_in_ot.length > 0 && (
@@ -92,7 +89,6 @@ export function TargetEnrichment({ litResult }: Props) {
             </div>
           )}
 
-          {/* Enriched target cards */}
           <div>
             <h3 className="text-base font-semibold text-gray-900 mb-3">
               Validated Targets

@@ -1,20 +1,21 @@
-import { useState } from 'react'
+import { usePipelineStore } from '../../../store/pipelineStore'
 import { LiteratureMining } from './LiteratureMining'
 import { TargetEnrichment } from './TargetEnrichment'
-import type { LitMiningResult } from '../../../types/targetIdentification'
+import { TargetSelectionPanel } from './TargetSelectionPanel'
 
 type Tab = 'literature' | 'enrichment'
+import { useState } from 'react'
 
 export function TargetIdentificationStage() {
   const [activeTab, setActiveTab] = useState<Tab>('literature')
-  const [litResult, setLitResult] = useState<LitMiningResult | null>(null)
+  const litResult = usePipelineStore((s) => s.litMiningResult)
 
   const enrichmentUnlocked = litResult !== null && litResult.candidate_targets.length > 0
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-0">
       {/* Method tabs */}
-      <div className="flex border-b border-gray-200">
+      <div className="flex border-b border-gray-200 mb-6">
         <button
           onClick={() => setActiveTab('literature')}
           className={[
@@ -42,23 +43,19 @@ export function TargetIdentificationStage() {
               ? 'border-transparent text-gray-500 hover:text-gray-700'
               : 'border-transparent text-gray-300 cursor-default',
           ].join(' ')}
-          title={!enrichmentUnlocked ? 'Run literature mining first to unlock enrichment' : undefined}
+          title={!enrichmentUnlocked ? 'Run literature mining first' : undefined}
         >
           Target Enrichment
           <span className="ml-1.5 text-xs text-gray-300">(optional)</span>
-          {!enrichmentUnlocked && (
-            <span className="ml-2 text-xs text-gray-300">— run lit mining first</span>
-          )}
         </button>
       </div>
 
       {/* Tab content */}
-      {activeTab === 'literature' && (
-        <LiteratureMining onComplete={setLitResult} />
-      )}
-      {activeTab === 'enrichment' && litResult && (
-        <TargetEnrichment litResult={litResult} />
-      )}
+      {activeTab === 'literature' && <LiteratureMining />}
+      {activeTab === 'enrichment' && <TargetEnrichment />}
+
+      {/* Selection panel — always visible once lit mining has results */}
+      <TargetSelectionPanel />
     </div>
   )
 }

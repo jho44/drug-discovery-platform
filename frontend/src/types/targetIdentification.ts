@@ -15,6 +15,8 @@ export interface CandidateTarget {
   rationale: string
   confidence: 'high' | 'medium' | 'low'
   evidence: Evidence[]
+  uniprot_id: string | null
+  uniprot_name: string | null
 }
 
 export interface Relation {

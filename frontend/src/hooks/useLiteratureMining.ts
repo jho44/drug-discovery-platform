@@ -1,19 +1,18 @@
 import { useState } from 'react'
 import { runLiteratureMining } from '../api/targetIdentification'
-import type { LitMiningResult } from '../types/targetIdentification'
+import { usePipelineStore } from '../store/pipelineStore'
 
 export function useLiteratureMining() {
-  const [result, setResult] = useState<LitMiningResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const setLitMiningResult = usePipelineStore((s) => s.setLitMiningResult)
 
   async function search(query: string, maxAbstracts = 15) {
     setLoading(true)
     setError(null)
-    setResult(null)
     try {
       const data = await runLiteratureMining({ query, max_abstracts: maxAbstracts })
-      setResult(data)
+      setLitMiningResult(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
@@ -21,5 +20,5 @@ export function useLiteratureMining() {
     }
   }
 
-  return { result, loading, error, search }
+  return { loading, error, search }
 }

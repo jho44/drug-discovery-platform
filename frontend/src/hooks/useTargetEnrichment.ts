@@ -1,19 +1,20 @@
 import { useState } from 'react'
 import { runEnrichment } from '../api/targetIdentification'
-import type { CandidateTarget, EnrichmentResult } from '../types/targetIdentification'
+import { usePipelineStore } from '../store/pipelineStore'
+import type { CandidateTarget } from '../types/targetIdentification'
 
 export function useTargetEnrichment() {
-  const [result, setResult] = useState<EnrichmentResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const enrichmentResult = usePipelineStore((s) => s.enrichmentResult)
+  const setEnrichmentResult = usePipelineStore((s) => s.setEnrichmentResult)
 
   async function enrich(query: string, candidates: CandidateTarget[]) {
     setLoading(true)
     setError(null)
-    setResult(null)
     try {
       const data = await runEnrichment({ original_query: query, candidate_targets: candidates })
-      setResult(data)
+      setEnrichmentResult(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
@@ -21,5 +22,5 @@ export function useTargetEnrichment() {
     }
   }
 
-  return { result, loading, error, enrich }
+  return { result: enrichmentResult, loading, error, enrich }
 }

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional
+from typing import List, Optional
 from pydantic import BaseModel, Field
 
 
@@ -20,6 +20,8 @@ class CandidateTarget(BaseModel):
     rationale: str
     confidence: str
     evidence: list[Evidence]
+    uniprot_id: Optional[str] = None
+    uniprot_name: Optional[str] = None
 
 
 class Relation(BaseModel):
