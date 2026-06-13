@@ -1,5 +1,6 @@
 """Literature mining pipeline: PubMed search → Claude NER/relation extraction → candidate targets."""
 
+from __future__ import annotations
 from services.pubmed_client import search_pubmed, fetch_abstracts
 from services.claude_client import analyze_abstracts_for_targets
 from pipeline.target_identification.models import (

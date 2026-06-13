@@ -1,15 +1,17 @@
 import { createContext, useContext, useReducer } from 'react'
 import type { PipelineStage } from '../types/pipeline'
-import type { LitMiningResult } from '../types/targetIdentification'
+import type { LitMiningResult, EnrichmentResult } from '../types/targetIdentification'
 
 interface PipelineState {
   activeStage: PipelineStage
   targetIdentificationResult: LitMiningResult | null
+  targetEnrichmentResult: EnrichmentResult | null
 }
 
 type PipelineAction =
   | { type: 'SET_ACTIVE_STAGE'; stage: PipelineStage }
   | { type: 'SET_TARGET_ID_RESULT'; result: LitMiningResult }
+  | { type: 'SET_TARGET_ENRICHMENT_RESULT'; result: EnrichmentResult }
 
 function pipelineReducer(state: PipelineState, action: PipelineAction): PipelineState {
   switch (action.type) {
@@ -17,12 +19,15 @@ function pipelineReducer(state: PipelineState, action: PipelineAction): Pipeline
       return { ...state, activeStage: action.stage }
     case 'SET_TARGET_ID_RESULT':
       return { ...state, targetIdentificationResult: action.result }
+    case 'SET_TARGET_ENRICHMENT_RESULT':
+      return { ...state, targetEnrichmentResult: action.result }
   }
 }
 
 const initialState: PipelineState = {
   activeStage: 'target_identification',
   targetIdentificationResult: null,
+  targetEnrichmentResult: null,
 }
 
 const PipelineContext = createContext<{

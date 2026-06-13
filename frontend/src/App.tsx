@@ -1,6 +1,6 @@
 import { PipelineProvider, usePipeline } from './context/PipelineContext'
 import { PageShell } from './components/layout/PageShell'
-import { LiteratureMining } from './components/pipeline/target_identification/LiteratureMining'
+import { TargetIdentificationStage } from './components/pipeline/target_identification/TargetIdentificationStage'
 import { HitDiscovery } from './components/pipeline/hit_discovery/HitDiscovery'
 
 function PipelineContent() {
@@ -8,7 +8,7 @@ function PipelineContent() {
 
   switch (state.activeStage) {
     case 'target_identification':
-      return <LiteratureMining />
+      return <TargetIdentificationStage />
     case 'hit_discovery':
       return <HitDiscovery />
     default:

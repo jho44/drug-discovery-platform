@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Optional
 from pydantic import BaseModel
 
 # Inputs accepted from target_identification stage
@@ -13,8 +15,8 @@ class HitCompound(BaseModel):
     name: str
     smiles: str
     target: str
-    docking_score: float | None = None
-    similarity_score: float | None = None
+    docking_score: Optional[float] = None
+    similarity_score: Optional[float] = None
 
 
 class HitDiscoveryResult(BaseModel):

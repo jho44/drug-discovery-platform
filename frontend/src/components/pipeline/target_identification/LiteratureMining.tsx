@@ -1,11 +1,21 @@
+import { useEffect } from 'react'
 import { useLiteratureMining } from '../../../hooks/useLiteratureMining'
 import { LitMiningSearchForm } from './LitMiningSearchForm'
 import { CandidateTargetList } from './CandidateTargetList'
 import { LoadingSpinner } from '../../shared/LoadingSpinner'
 import { ErrorBanner } from '../../shared/ErrorBanner'
+import type { LitMiningResult } from '../../../types/targetIdentification'
 
-export function LiteratureMining() {
+interface Props {
+  onComplete?: (result: LitMiningResult) => void
+}
+
+export function LiteratureMining({ onComplete }: Props) {
   const { result, loading, error, search } = useLiteratureMining()
+
+  useEffect(() => {
+    if (result && onComplete) onComplete(result)
+  }, [result])
 
   return (
     <div className="space-y-6">
