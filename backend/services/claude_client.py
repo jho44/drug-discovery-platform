@@ -178,6 +178,72 @@ def _format_evidence_bundle(bundle: dict) -> str:
     return "\n".join(lines)
 
 
+HIT_DISCOVERY_SYNTHESIS_PROMPT = """\
+You are a medicinal chemist analyzing hit discovery results for a drug discovery program.
+
+Target: {target_name}
+
+The following compounds were identified across four screening methods:
+
+{hits_text}
+
+Your task:
+1. Identify which method(s) provided the most promising leads and briefly explain why.
+2. Highlight any standout repurposing candidates (approved drugs or late-stage clinical compounds).
+3. Note if fragment hits show potential for further development.
+4. Flag any concerns (e.g., very low potency, known toxicity, pan-assay interference compounds).
+5. Give a 2–4 sentence actionable summary for the medicinal chemistry team.
+
+Return valid JSON (no markdown fences) with this exact structure:
+{{
+  "summary": "2-4 sentence medicinal chemistry assessment",
+  "top_hit_ids": ["list of 3-5 most promising compound IDs from the data above"],
+  "confidence": "high | medium | low"
+}}
+"""
+
+
+def _format_hits_for_claude(hits_by_method: dict) -> str:
+    lines = []
+    for method, hits in hits_by_method.items():
+        if not hits:
+            lines.append(f"{method.upper()}: no hits found")
+            continue
+        lines.append(f"{method.upper()} ({len(hits)} hits):")
+        for h in hits[:8]:
+            parts = [f"  - {h.get('compound_id', '?')}"]
+            if h.get("name"):
+                parts.append(f"name={h['name']}")
+            if h.get("activity_value") is not None:
+                parts.append(f"activity={h['activity_value']:.1f}")
+            if h.get("max_phase"):
+                parts.append(f"phase={h['max_phase']}")
+            if h.get("indication"):
+                parts.append(f"indication={h['indication']}")
+            if h.get("molecular_weight"):
+                parts.append(f"MW={h['molecular_weight']:.0f}")
+            lines.append(" ".join(parts))
+    return "\n".join(lines)
+
+
+async def synthesize_hit_discovery(
+    target_name: str,
+    hits_by_method: dict,
+) -> dict:
+    """Send multi-method hit discovery results to Claude for synthesis."""
+    hits_text = _format_hits_for_claude(hits_by_method)
+    prompt = HIT_DISCOVERY_SYNTHESIS_PROMPT.format(
+        target_name=target_name,
+        hits_text=hits_text,
+    )
+    message = await _client.messages.create(
+        model=settings.claude_model,
+        max_tokens=2000,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return _extract_json(message.content[0].text)
+
+
 async def synthesize_enriched_targets(
     query: str,
     evidence_bundles: list[dict],

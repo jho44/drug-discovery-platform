@@ -176,3 +176,81 @@ async def get_opentargets_data(gene_symbols: list[str]) -> list[OpenTargetsResul
     """Fetch OpenTargets evidence for a list of gene symbols in parallel."""
     async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
         return list(await asyncio.gather(*(_get_one(sym, client) for sym in gene_symbols)))
+
+
+# ---------------------------------------------------------------------------
+# Known drugs — used by Stage 2 (Hit Discovery) for repurposing candidates
+# ---------------------------------------------------------------------------
+
+@dataclass
+class KnownDrug:
+    drug_id: str
+    drug_name: str
+    max_phase: int | None
+    disease_name: str
+    mechanism: str | None
+
+
+_KNOWN_DRUGS_QUERY = """
+query KnownDrugs($ensemblId: String!) {
+  target(ensemblId: $ensemblId) {
+    knownDrugs(size: 15) {
+      rows {
+        drug {
+          id
+          name
+          maximumClinicalTrialPhase
+        }
+        disease {
+          name
+        }
+        mechanismOfAction
+      }
+    }
+  }
+}
+"""
+
+
+async def _get_known_drugs_for_symbol(
+    symbol: str, client: httpx.AsyncClient
+) -> list[KnownDrug]:
+    normalized = _normalize_symbol(symbol)
+    ensembl_id = await _resolve_ensembl_id(normalized, client)
+    if not ensembl_id:
+        return []
+    try:
+        resp = await client.post(
+            settings.opentargets_graphql_url,
+            json={"query": _KNOWN_DRUGS_QUERY, "variables": {"ensemblId": ensembl_id}},
+        )
+        resp.raise_for_status()
+        rows = (
+            resp.json()
+            .get("data", {})
+            .get("target", {})
+            .get("knownDrugs", {})
+            .get("rows") or []
+        )
+        return [
+            KnownDrug(
+                drug_id=r["drug"]["id"],
+                drug_name=r["drug"]["name"],
+                max_phase=r["drug"].get("maximumClinicalTrialPhase"),
+                disease_name=(r.get("disease") or {}).get("name", ""),
+                mechanism=r.get("mechanismOfAction"),
+            )
+            for r in rows
+            if r.get("drug", {}).get("id")
+        ]
+    except Exception:
+        return []
+
+
+async def get_known_drugs(gene_symbols: list[str]) -> dict[str, list[KnownDrug]]:
+    """Fetch approved/clinical-stage drugs for each gene symbol via OpenTargets."""
+    async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
+        results = await asyncio.gather(
+            *(_get_known_drugs_for_symbol(sym, client) for sym in gene_symbols)
+        )
+    return dict(zip(gene_symbols, results))

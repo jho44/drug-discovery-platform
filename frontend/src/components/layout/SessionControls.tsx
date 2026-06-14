@@ -11,6 +11,7 @@ export function SessionControls() {
   const litMiningResult = usePipelineStore((s) => s.litMiningResult)
   const enrichmentResult = usePipelineStore((s) => s.enrichmentResult)
   const selectedTargets = usePipelineStore((s) => s.selectedTargets)
+  const hitDiscoveryResult = usePipelineStore((s) => s.hitDiscoveryResult)
   const loadSession = usePipelineStore((s) => s.loadSession)
 
   function showFeedback(msg: string) {
@@ -26,6 +27,7 @@ export function SessionControls() {
       litMiningResult,
       enrichmentResult,
       selectedTargets,
+      hitDiscoveryResult,
     }
     exportSession(snapshot)
     showFeedback('Exported!')

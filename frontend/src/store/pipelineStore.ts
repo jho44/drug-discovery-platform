@@ -6,6 +6,7 @@ import type {
   EnrichmentResult,
   CandidateTarget,
 } from '../types/targetIdentification'
+import type { HitDiscoveryResult } from '../types/hitDiscovery'
 
 interface PipelineStore {
   // Navigation
@@ -21,6 +22,10 @@ interface PipelineStore {
   setEnrichmentResult: (result: EnrichmentResult) => void
   setSelectedTargets: (targets: CandidateTarget[]) => void
 
+  // Stage: Hit Discovery
+  hitDiscoveryResult: HitDiscoveryResult | null
+  setHitDiscoveryResult: (result: HitDiscoveryResult) => void
+
   // Unlock logic — a stage is accessible once its prerequisite is met
   isStageUnlocked: (stage: PipelineStage) => boolean
 
@@ -35,20 +40,23 @@ export const usePipelineStore = create<PipelineStore>()(
       litMiningResult: null,
       enrichmentResult: null,
       selectedTargets: [],
+      hitDiscoveryResult: null,
 
       setActiveStage: (stage) => set({ activeStage: stage }),
       setLitMiningResult: (result) => set({ litMiningResult: result, enrichmentResult: null }),
       setEnrichmentResult: (result) => set({ enrichmentResult: result }),
       setSelectedTargets: (targets) => set({ selectedTargets: targets }),
+      setHitDiscoveryResult: (result) => set({ hitDiscoveryResult: result }),
 
       isStageUnlocked: (stage) => {
-        const { selectedTargets } = get()
+        const { selectedTargets, hitDiscoveryResult } = get()
         switch (stage) {
           case 'target_identification':
             return true
           case 'hit_discovery':
             return selectedTargets.length > 0
-          // future stages unlock sequentially — extend here
+          case 'lead_optimization':
+            return hitDiscoveryResult !== null
           default:
             return false
         }
@@ -63,6 +71,7 @@ export const usePipelineStore = create<PipelineStore>()(
           litMiningResult: snapshot.litMiningResult,
           enrichmentResult: snapshot.enrichmentResult,
           selectedTargets: snapshot.selectedTargets,
+          hitDiscoveryResult: snapshot.hitDiscoveryResult ?? null,
         }),
     }),
     {
@@ -74,6 +83,7 @@ export const usePipelineStore = create<PipelineStore>()(
         litMiningResult: state.litMiningResult,
         enrichmentResult: state.enrichmentResult,
         selectedTargets: state.selectedTargets,
+        hitDiscoveryResult: state.hitDiscoveryResult,
       }),
     },
   ),

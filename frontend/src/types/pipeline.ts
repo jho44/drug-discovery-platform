@@ -1,4 +1,5 @@
 import type { LitMiningResult, EnrichmentResult, CandidateTarget } from './targetIdentification'
+import type { HitDiscoveryResult } from './hitDiscovery'
 
 export type PipelineStage =
   | 'target_identification'
@@ -24,4 +25,5 @@ export interface SessionSnapshot {
   litMiningResult: LitMiningResult | null
   enrichmentResult: EnrichmentResult | null
   selectedTargets: CandidateTarget[]
+  hitDiscoveryResult?: HitDiscoveryResult | null
 }
