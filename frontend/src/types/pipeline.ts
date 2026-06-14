@@ -1,3 +1,5 @@
+import type { LitMiningResult, EnrichmentResult, CandidateTarget } from './targetIdentification'
+
 export type PipelineStage =
   | 'target_identification'
   | 'hit_discovery'
@@ -14,3 +16,12 @@ export const PIPELINE_STAGES: { id: PipelineStage; label: string }[] = [
   { id: 'clinical_trials', label: 'Clinical Trials' },
   { id: 'regulatory_approval', label: 'Regulatory Approval' },
 ]
+
+export interface SessionSnapshot {
+  version: 1
+  exportedAt: string
+  activeStage: PipelineStage
+  litMiningResult: LitMiningResult | null
+  enrichmentResult: EnrichmentResult | null
+  selectedTargets: CandidateTarget[]
+}

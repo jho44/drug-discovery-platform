@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import type { PipelineStage } from '../types/pipeline'
+import type { PipelineStage, SessionSnapshot } from '../types/pipeline'
 import type {
   LitMiningResult,
   EnrichmentResult,
@@ -25,6 +25,7 @@ interface PipelineStore {
   isStageUnlocked: (stage: PipelineStage) => boolean
 
   clearStage1: () => void
+  loadSession: (snapshot: SessionSnapshot) => void
 }
 
 export const usePipelineStore = create<PipelineStore>()(
@@ -55,6 +56,14 @@ export const usePipelineStore = create<PipelineStore>()(
 
       clearStage1: () =>
         set({ litMiningResult: null, enrichmentResult: null, selectedTargets: [] }),
+
+      loadSession: (snapshot) =>
+        set({
+          activeStage: snapshot.activeStage,
+          litMiningResult: snapshot.litMiningResult,
+          enrichmentResult: snapshot.enrichmentResult,
+          selectedTargets: snapshot.selectedTargets,
+        }),
     }),
     {
       name: 'drug-discovery-pipeline',
