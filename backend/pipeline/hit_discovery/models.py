@@ -22,6 +22,7 @@ class CompoundHit(BaseModel):
     max_phase: Optional[int] = None         # clinical phase (repurposing)
     assay_id: Optional[str] = None
     consensus_score: Optional[float] = None
+    docking_score: Optional[float] = None   # kcal/mol from AutoDock Vina; more negative = better
     image_url: Optional[str] = None
 
 
@@ -34,6 +35,7 @@ class TargetHits(BaseModel):
     fragment_hits: List[CompoundHit] = []
     hts_hits: List[CompoundHit] = []
     consensus_hits: List[CompoundHit] = []
+    docking_hits: List[CompoundHit] = []    # consensus hits ranked by Vina docking score
     claude_summary: str = ""
     methods_run: List[str] = []
     total_hits: int = 0

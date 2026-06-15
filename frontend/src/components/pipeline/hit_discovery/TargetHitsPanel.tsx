@@ -2,9 +2,10 @@ import { useState } from 'react'
 import type { CompoundHit, TargetHits } from '../../../types/hitDiscovery'
 import { CompoundHitCard } from './CompoundHitCard'
 
-type Tab = 'ligand' | 'repurposing' | 'fragment' | 'hts' | 'consensus'
+type Tab = 'docking' | 'consensus' | 'ligand' | 'repurposing' | 'fragment' | 'hts'
 
 const TABS: { id: Tab; label: string; key: keyof TargetHits }[] = [
+  { id: 'docking', label: 'Docking', key: 'docking_hits' },
   { id: 'consensus', label: 'Consensus', key: 'consensus_hits' },
   { id: 'ligand', label: 'Ligand-Based', key: 'ligand_based_hits' },
   { id: 'repurposing', label: 'Repurposing', key: 'repurposing_hits' },
@@ -22,7 +23,9 @@ function HitCount({ n }: { n: number }) {
 }
 
 export function TargetHitsPanel({ target }: { target: TargetHits }) {
-  const [activeTab, setActiveTab] = useState<Tab>('consensus')
+  const [activeTab, setActiveTab] = useState<Tab>(
+    target.docking_hits?.length ? 'docking' : 'consensus'
+  )
 
   const currentHits = (target[TABS.find((t) => t.id === activeTab)!.key] as CompoundHit[]) ?? []
 

@@ -10,6 +10,8 @@ Four parallel methods per target:
 from __future__ import annotations
 import asyncio
 
+USE_AI_SUMMARIZATION = True
+
 from pipeline.hit_discovery.models import (
     CompoundHit,
     HitDiscoveryRequest,
@@ -26,6 +28,7 @@ from services.chembl_client import (
     get_similar_compounds,
     resolve_chembl_target,
 )
+from pipeline.hit_discovery.virtual_screening import dock_compounds
 from services.claude_client import synthesize_hit_discovery
 from services.ensemble import compute_consensus
 from services.opentargets_client import KnownDrug, get_known_drugs
@@ -192,7 +195,15 @@ async def _process_target(target: CandidateTarget) -> TargetHits:
             consensus_hits.append(hit)
     result.consensus_hits = consensus_hits
 
-    # Step 7: Claude synthesis
+    # Step 7: Virtual docking — rank consensus hits with SMILES via AutoDock Vina
+    print(f"[docking] target={target.name} uniprot={target.uniprot_id} consensus_hits={len(consensus_hits)}")
+    if target.uniprot_id and consensus_hits:
+        smiles_hits = [h for h in consensus_hits if h.smiles][:10]
+        print(f"[docking] smiles_hits={len(smiles_hits)} ids={[h.compound_id for h in smiles_hits]}")
+        result.docking_hits = await _safe(dock_compounds(target.uniprot_id, smiles_hits))
+        print(f"[docking] docking_hits={len(result.docking_hits)}")
+
+    # Step 8: Claude synthesis
     methods_run = []
     if ligand_hits:
         methods_run.append("Ligand Similarity (ChEMBL)")
@@ -202,10 +213,12 @@ async def _process_target(target: CandidateTarget) -> TargetHits:
         methods_run.append("Fragment Screening (ChEMBL)")
     if hts_hits:
         methods_run.append("HTS Experimental (PubChem)")
+    if result.docking_hits:
+        methods_run.append("Virtual Docking (Vina)")
 
     result.methods_run = methods_run
 
-    if any([ligand_hits, repurposing_hits, fragment_hits, hts_hits]):
+    if any([ligand_hits, repurposing_hits, fragment_hits, hts_hits]) and USE_AI_SUMMARIZATION:
         try:
             synthesis = await synthesize_hit_discovery(
                 target_name=target.name,

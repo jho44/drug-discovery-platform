@@ -101,6 +101,11 @@ export function CompoundHitCard({ hit }: { hit: CompoundHit }) {
               {hit.indication}
             </span>
           )}
+          {hit.docking_score != null && (
+            <span className="text-indigo-600 font-medium">
+              {hit.docking_score.toFixed(1)} kcal/mol
+            </span>
+          )}
           {hit.consensus_score != null && (
             <span className="text-lab-600 font-medium">
               consensus {(hit.consensus_score * 100).toFixed(0)}%

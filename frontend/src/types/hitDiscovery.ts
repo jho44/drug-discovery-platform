@@ -23,6 +23,7 @@ export interface CompoundHit {
   max_phase: number | null
   assay_id: string | null
   consensus_score: number | null
+  docking_score: number | null  // kcal/mol from AutoDock Vina; more negative = better binding
   image_url: string | null
 }
 
@@ -35,6 +36,7 @@ export interface TargetHits {
   fragment_hits: CompoundHit[]
   hts_hits: CompoundHit[]
   consensus_hits: CompoundHit[]
+  docking_hits: CompoundHit[]  // consensus hits ranked by Vina docking score
   claude_summary: string
   methods_run: string[]
   total_hits: number
